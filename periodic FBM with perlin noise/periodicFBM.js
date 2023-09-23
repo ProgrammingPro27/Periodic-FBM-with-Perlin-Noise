@@ -1,17 +1,15 @@
+let canvas = document.getElementById('canvas');
+let ctx = canvas.getContext('2d');
+
 let perlin = new Perlin();
 perlin.seed();
 
-let canvas = document.getElementById('canvas');
-let ctx = canvas.getContext('2d');
 let w = 256;
 canvas.width = canvas.height = w;
+let numOfPoints = 5;
 
-let gridSize = 9; //must be integer
-let resolution = 256;
-
-
-let octaves = 10;
-let lacunarity = 5.0; //lacunarity тmust be integer, not float (it ruins periodic effect) !
+let octaves = 5;
+let lacunarity = 5.0; //lacunarity must be integer, not float (it ruins periodic effect) !
 let gain = 0.2;
 
 function fbm(x, y, period) {
@@ -25,22 +23,26 @@ function fbm(x, y, period) {
         frequency *= lacunarity;
         amplitude *= gain;
     }
+    return total;
+}
 
-    return total
+function createFBMTexture() {
+    let imageData = ctx.createImageData(w, w);
+    for (let y = 0; y < w; y++) {
+        for (let x = 0; x < w; x++) {
+            let index = (y * w + x) * 4;
+            let v = (fbm(x * numOfPoints / w, y * numOfPoints / w, numOfPoints) / 2 + 0.5) * 255;
+            imageData.data[index] = v;
+            imageData.data[index + 1] = v;
+            imageData.data[index + 2] = v;
+            imageData.data[index + 3] = 255;
+        }
+    }
+    return imageData;
 }
 
 function render() {
-    let pixSize = w / resolution;
-    ctx.clearRect(0, 0, canvas.width, canvas.width);
-
-    for (let y = 0; y < gridSize; y += gridSize / resolution) {
-        for (let x = 0; x < gridSize; x += gridSize / resolution) {
-
-            let v = (fbm(x, y, gridSize) / 2 + 0.5) * 255;
-
-            ctx.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')';
-            ctx.fillRect(x * (w / gridSize), y * (w / gridSize), pixSize, pixSize);
-        }
-    }
+    let imageData = createFBMTexture();
+    ctx.putImageData(imageData, 0, 0);
 }
 render();

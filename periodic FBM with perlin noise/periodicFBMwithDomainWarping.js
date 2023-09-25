@@ -7,12 +7,9 @@ canvas.width = canvas.height = w;
 let perlin = new Perlin();
 perlin.seed();
 
-let imgdata = ctx.getImageData(0, 0, canvas.width, canvas.height)
-let data = imgdata.data
-
-let octaves = 3
-let lacunarity = 2
-let gain = 0.5
+let octaves = 3;
+let lacunarity = 2;
+let gain = 0.5;
 
 function fbm(x, y, octaves, lacunarity, gain) {
     let total = 0;
@@ -26,16 +23,18 @@ function fbm(x, y, octaves, lacunarity, gain) {
         amplitude *= gain;
     }
     return total;
-}
+};
 
 function pattern(x, y, octaves, lacunarity, gain) {
     let q = [
         Math.abs(fbm(x, y, octaves, lacunarity, gain)),
         Math.abs(fbm(x + 5.2, y + 1.3, octaves, lacunarity, gain)),
     ];
-
     return fbm(x + 80.0 * q[0], y + 80.0 * q[1], octaves, lacunarity, gain);
-}
+};
+
+let imgdata = ctx.getImageData(0, 0, w, w);
+let data = imgdata.data;
 
 for (let x = 0; x < w; x++) {
     for (let y = 0; y < w; y++) {

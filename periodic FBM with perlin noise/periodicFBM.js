@@ -1,48 +1,42 @@
 let canvas = document.getElementById('canvas');
 let ctx = canvas.getContext('2d');
 
+let w = 256;
+canvas.width = canvas.height = w;
+
 let perlin = new Perlin();
 perlin.seed();
 
-let w = 256;
-canvas.width = canvas.height = w;
-let numOfPoints = 5;
-
 let octaves = 5;
-let lacunarity = 5.0; //lacunarity must be integer, not float (it ruins periodic effect) !
-let gain = 0.2;
+let lacunarity = 2;
+let gain = 0.5;
 
-function fbm(x, y, period) {
+function fbm(x, y, octaves, lacunarity, gain) {
     let total = 0;
-
-    let amplitude = 1.5;
-    let frequency = 1; //frequency must be integer, not float (it ruins periodic effect) !
+    let amplitude = 1;
+    let frequency = 5;
+    let numOfPoints = frequency;
 
     for (let i = 0; i < octaves; i++) {
-        total += amplitude * perlin.get(frequency * x, frequency * y, period);
+        total += perlin.get(x / w * frequency, y / w * frequency, numOfPoints) * amplitude;
         frequency *= lacunarity;
         amplitude *= gain;
     }
     return total;
-}
+};
 
-function createFBMTexture() {
-    let imageData = ctx.createImageData(w, w);
+let imgdata = ctx.getImageData(0, 0, w, w);
+let data = imgdata.data;
+
+for (let x = 0; x < w; x++) {
     for (let y = 0; y < w; y++) {
-        for (let x = 0; x < w; x++) {
-            let index = (y * w + x) * 4;
-            let v = (fbm(x * numOfPoints / w, y * numOfPoints / w, numOfPoints) / 2 + 0.5) * 255;
-            imageData.data[index] = v;
-            imageData.data[index + 1] = v;
-            imageData.data[index + 2] = v;
-            imageData.data[index + 3] = 255;
-        }
+        let index = (y * w + x) * 4;
+        let v = (fbm(x, y, octaves, lacunarity, gain) / 2 + 0.5) * 255;
+        data[index] = v;
+        data[index + 1] = v;
+        data[index + 2] = v;
+        data[index + 3] = 255;
     }
-    return imageData;
 }
 
-function render() {
-    let imageData = createFBMTexture();
-    ctx.putImageData(imageData, 0, 0);
-}
-render();
+ctx.putImageData(imgdata, 0, 0);
